@@ -1,0 +1,893 @@
+/*
+Spiel selberbau
+ */
+
+const int buttonBlau = 8;
+const int buttonWarmWeis = A0;
+const int buttonRot = A1;
+const int buttonKaltWeis = A2;
+const int buttonGelb= A3;
+const int buttonGruen = A4;
+const int buttonLila = A5;
+
+const int gruen = 1;
+const int kaltWeis = 2;
+const int rot = 3;
+const int blau = 4;
+const int lila = 5;
+const int gelb = 6;
+const int warmWeis = 7;
+
+const int ledGruen = 2;
+const int ledKaltWeis = 3;
+const int ledRot = 4;
+const int ledBlau = 5;
+const int ledWarmWeis = 6;
+const int ledLila = 7;
+const int ledLeer = 12;
+const int ledGelb = 13;
+
+const int rgbLedR = 9;
+const int rgbLedG = 10;
+const int rgbLedB = 11;
+
+byte redVal = 0;
+byte grnVal = 0;
+byte bluVal = 0;
+
+
+// variables will change:
+byte zufallszahl;      //Nicht auf 0 setzen!!!
+int randNumber = 0;
+int buttonState = 0;         // variable for reading the pushbutton status
+byte spielerBlau = 0;
+byte spielerWarmWeis = 0;
+byte spielerRot = 0;
+byte spielerKaltWeis = 0;
+byte spielerGelb = 0;
+byte spielerGruen = 0;
+byte spielerLila = 0;
+byte spielerFrei = 0;
+
+// the setup function runs once when you press reset or power the board
+void setup() 
+{
+  Serial.begin(9600);
+    
+  // initialize digital pin 13 as an output.
+  pinMode(2, OUTPUT);   //LED Grün
+  pinMode(3, OUTPUT);   //LED weis kalt
+  pinMode(4, OUTPUT);   //LED rot
+  pinMode(5, OUTPUT);   //LED blau
+  pinMode(6, OUTPUT);   //LED weis warm
+  pinMode(7, OUTPUT);   //LED lila
+  pinMode(12, OUTPUT);   //LED leer
+  pinMode(13, OUTPUT);   //LED gelb
+  
+  pinMode(9, OUTPUT);    //RGB LED Rot
+  pinMode(10, OUTPUT);   //RGB LED Grün 
+  pinMode(11, OUTPUT);   //RGB LED Blau 
+  
+  pinMode(8, INPUT);    //Taster blau
+  pinMode(A0, INPUT);   //Taster weis warm
+  pinMode(A1, INPUT);   //Taster rot
+  pinMode(A2, INPUT);   //Taster weis kalt
+  pinMode(A3, INPUT);   //Taster gelb
+  pinMode(A4, INPUT);   //Taster grün
+  pinMode(A5, INPUT);   //Taster lila
+
+    analogWrite(rgbLedR, 10);
+    analogWrite(rgbLedG, 10);      
+    analogWrite(rgbLedB, 10);
+
+
+  digitalWrite(ledGruen, HIGH);
+//Warten bis grüne Taste gedrückt wird, benötigt um Zufallszahl zu erzeugen
+  buttonState = digitalRead(buttonGruen);  
+  while (buttonState == HIGH)
+  {
+    zufallszahl = zufallszahl+1;
+    buttonState = digitalRead(buttonGruen);    
+      Serial.println(zufallszahl); 
+  }
+
+  randomSeed(zufallszahl);  //Zufallszahl erzeugung starten
+  for (int i=0;i<=100; i++)
+  {  
+  delay(150);
+//Taster LED Rot
+  buttonState = digitalRead(buttonRot);
+  if (buttonState == LOW) 
+  { digitalWrite(ledRot, HIGH); //LED setzen - Mitspieler Aktiv
+    spielerRot = 1;
+    SetRGBled(rot);
+   } else {}
+//Taster LED Blau 
+  buttonState = digitalRead(buttonBlau);  
+  if (buttonState == LOW) 
+  { digitalWrite(ledBlau, HIGH); //LED setzen - Mitspieler Aktiv
+    spielerBlau = 1;
+    SetRGBled(blau);
+  } else {}
+//Taster LED Grün
+  buttonState = digitalRead(buttonGruen);  
+  if (buttonState == LOW) 
+  { digitalWrite(ledGruen, HIGH); //LED setzen - Mitspieler Aktiv
+    spielerGruen = 1;
+    SetRGBled(gruen);
+  } else {}
+//Taster LED Gelb
+  buttonState = digitalRead(buttonGelb);  
+  if (buttonState == LOW) 
+  { digitalWrite(ledGelb, HIGH); //LED setzen - Mitspieler Aktiv
+    spielerGelb = 1;
+    SetRGBled(gelb);
+  } else {}
+//Taster LED Lila
+  buttonState = digitalRead(buttonLila);  
+  if (buttonState == LOW) 
+  { digitalWrite(ledLila, HIGH); //LED setzen - Mitspieler Aktiv
+    spielerLila = 1;
+    SetRGBled(lila);
+  } else {}
+//Taster LED Weis Kalt
+  buttonState = digitalRead(buttonKaltWeis);  
+  if (buttonState == LOW) 
+  { digitalWrite(ledKaltWeis, HIGH); //LED setzen - Mitspieler Aktiv
+    spielerKaltWeis = 1;
+    SetRGBled(kaltWeis); 
+  } else {}
+//Taster LED Weis Warm - geht nicht!!!!
+  buttonState = digitalRead(buttonWarmWeis);  
+  if (buttonState == LOW) 
+  { digitalWrite(ledWarmWeis, HIGH); //LED setzen - Mitspieler Aktiv
+    spielerWarmWeis = 1;
+    SetRGBled(warmWeis);
+  } else {}
+
+
+}
+//Am Ende RGB LED ausschalten -> Spielstart
+SetRGBled(0);
+  
+
+
+   
+} //Setup Ende
+
+
+
+
+
+byte runden[10] = {0,0,0,0,0,0,0,0,0};  //beginn bei 0
+int i = 0;
+
+void loop() 
+{
+  alleLEDan();
+  delay(2000);
+  alleLEDaus();
+  delay(2000); 
+  alleLEDan();
+  delay(1000);
+  alleLEDaus();
+  delay(1000);
+blinkenLassen();
+
+//Runde 0:
+  farbeAusgeben();
+    alleLEDaus();
+    delay(500);
+    alleLEDan();
+    delay(500);
+  tasterAuswerten();
+  
+blinkenLassen();
+delay(3000);
+delay(3000);
+//Runde 1:
+
+  farbeAusgeben();
+  i++;
+  delay(1000);
+  farbeAusgeben();
+    alleLEDaus();
+    delay(500);
+    alleLEDan();
+    delay(500);  
+  i--;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  blinkenLassen();
+delay(3000);
+delay(3000);
+
+//Runde 2:
+  i=0;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+    alleLEDaus();
+    delay(500);
+    alleLEDan();
+    delay(500);
+  i=0;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  blinkenLassen();
+delay(3000);
+delay(3000);
+
+//Runde 3:
+  i=0;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+    alleLEDaus();
+    delay(500);
+    alleLEDan();
+    delay(500);
+  i=0;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  blinkenLassen();
+delay(3000);
+delay(3000);
+
+//Runde 4:
+  i=0;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+    alleLEDaus();
+    delay(500);
+    alleLEDan();
+    delay(500);
+  i=0;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  blinkenLassen();
+delay(3000);
+delay(3000);
+
+//Runde 5:
+  i=0;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+    alleLEDaus();
+    delay(500);
+    alleLEDan();
+    delay(500);
+  i=0;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  blinkenLassen();
+delay(3000);
+delay(3000);
+
+//Runde 6:
+  i=0;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+    alleLEDaus();
+    delay(500);
+    alleLEDan();
+    delay(500);
+  i=0;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  blinkenLassen();
+delay(3000);
+delay(3000);
+
+//Runde 7:
+  i=0;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+    alleLEDaus();
+    delay(500);
+    alleLEDan();
+    delay(500);
+  i=0;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  blinkenLassen();
+delay(3000);
+delay(3000);
+
+//Runde 8:
+  i=0;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+    alleLEDaus();
+    delay(500);
+    alleLEDan();
+    delay(500);
+  i=0;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  blinkenLassen();
+delay(3000);
+delay(3000);
+
+//Runde 9:
+  i=0;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+    alleLEDaus();
+    delay(500);
+    alleLEDan();
+    delay(500);
+  i=0;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  blinkenLassen();
+delay(3000);
+delay(3000);
+
+//Runde 10:
+  i=0;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+  delay(1000);
+  i++;
+  farbeAusgeben();
+    alleLEDaus();
+    delay(500);
+    alleLEDan();
+    delay(500);
+  i=0;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  i++;
+  tasterAuswerten();
+  blinkenLassen();
+delay(3000);
+delay(3000);
+
+
+
+  alleLEDaus();
+  
+while(1);
+
+
+} //Ende loop
+
+
+
+
+void tasterAuswerten()
+{
+  switch (runden[i])
+  {
+  case 1:
+      buttonState = digitalRead(buttonGruen);  
+      while(buttonState == HIGH)
+      {
+      buttonState = digitalRead(buttonGruen);  
+      }
+      SetRGBled(runden[i]);
+      delay(300);
+       SetRGBled(0);     
+      break;
+
+  case 2:
+      buttonState = digitalRead(buttonKaltWeis);  
+      while(buttonState == HIGH)
+      {
+      buttonState = digitalRead(buttonKaltWeis);  
+      }
+      SetRGBled(runden[i]);
+      delay(300);
+      SetRGBled(0); 
+      break;
+
+  case 3:
+      buttonState = digitalRead(buttonRot);  
+      while(buttonState == HIGH)
+      {
+      buttonState = digitalRead(buttonRot);  
+      }
+      SetRGBled(runden[i]);
+      delay(300);
+      SetRGBled(0); 
+      break;
+
+  case 4:
+      buttonState = digitalRead(buttonBlau);  
+      while(buttonState == HIGH)
+      {
+      buttonState = digitalRead(buttonBlau);  
+      }
+      SetRGBled(runden[i]);
+      delay(300);
+      SetRGBled(0); 
+      break;      
+
+  case 5:
+      buttonState = digitalRead(buttonLila);  
+      while(buttonState == HIGH)
+      {
+      buttonState = digitalRead(buttonLila);  
+      }
+      SetRGBled(runden[i]);
+      delay(300);
+      SetRGBled(0); 
+      break;  
+
+  case 6:
+      buttonState = digitalRead(buttonGelb);  
+      while(buttonState == HIGH)
+      {
+      buttonState = digitalRead(buttonGelb);  
+      }
+      SetRGBled(runden[i]);
+      delay(300);
+      SetRGBled(0); 
+      break; 
+  }
+}
+
+void farbeAusgeben()
+{
+  randNumber = random(1, 7);
+  SetRGBled(randNumber);
+  runden[i] = randNumber;
+  Serial.print("Runde "); 
+  Serial.print(i); 
+  Serial.print(": Farbe: "); 
+  Serial.println(runden[i]); 
+ 
+  delay(4000);  
+  SetRGBled(0);
+
+  
+}
+
+void blinkenLassen()
+{
+ 
+
+  alleLEDan();
+delay(500);
+  alleLEDaus();
+delay(500);
+  alleLEDan();
+delay(250);
+  alleLEDaus();
+delay(250);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+delay(50);
+  alleLEDaus();
+delay(50);
+  alleLEDan();
+}
+
+void alleLEDan()
+{
+digitalWrite(ledGruen, HIGH);
+digitalWrite(ledKaltWeis, HIGH);
+digitalWrite(ledRot, HIGH);
+digitalWrite(ledBlau, HIGH);
+digitalWrite(ledLila, HIGH);
+digitalWrite(ledGelb, HIGH);
+}
+
+void alleLEDaus()
+{
+digitalWrite(ledGruen, LOW);
+digitalWrite(ledKaltWeis, LOW);
+digitalWrite(ledRot, LOW);
+digitalWrite(ledBlau, LOW);
+digitalWrite(ledLila, LOW);
+digitalWrite(ledGelb, LOW);
+}
+
+void SetRGBled(int farbe)
+{
+  if(farbe == 1)//Grün
+  {
+    HSV_to_RGB(120, 100, 100, &redVal, &grnVal, &bluVal);
+    analogWrite(rgbLedR, redVal); 
+    analogWrite(rgbLedG, grnVal);      
+    analogWrite(rgbLedB, bluVal); 
+  } else{};
+  if(farbe == 2)//KaltWeis
+  {
+    HSV_to_RGB(0, 0, 100, &redVal, &grnVal, &bluVal);
+    analogWrite(rgbLedR, redVal); 
+    analogWrite(rgbLedG, grnVal);      
+    analogWrite(rgbLedB, bluVal); 
+  } else{};
+  if(farbe == 3)//Rot
+  {
+    HSV_to_RGB(0, 100, 100, &redVal, &grnVal, &bluVal);
+    analogWrite(rgbLedR, redVal); 
+    analogWrite(rgbLedG, grnVal);      
+    analogWrite(rgbLedB, bluVal); 
+  } else{};
+  if(farbe == 4)//Blau
+  {
+    HSV_to_RGB(240, 100, 100, &redVal, &grnVal, &bluVal);
+    analogWrite(rgbLedR, redVal); 
+    analogWrite(rgbLedG, grnVal);      
+    analogWrite(rgbLedB, bluVal); 
+  } else{};  
+  if(farbe == 5)//lila
+  {
+    HSV_to_RGB(300, 100, 100, &redVal, &grnVal, &bluVal);
+    analogWrite(rgbLedR, redVal); 
+    analogWrite(rgbLedG, grnVal);      
+    analogWrite(rgbLedB, bluVal); 
+  } else{};
+  if(farbe == 6)//Gelb
+  {
+    HSV_to_RGB(60, 100, 100, &redVal, &grnVal, &bluVal);
+    analogWrite(rgbLedR, redVal); 
+    analogWrite(rgbLedG, grnVal);      
+    analogWrite(rgbLedB, bluVal); 
+  } else{};
+  if(farbe == 0)//aus
+  {
+    HSV_to_RGB(0, 0, 0, &redVal, &grnVal, &bluVal);
+    analogWrite(rgbLedR, redVal); 
+    analogWrite(rgbLedG, grnVal);      
+    analogWrite(rgbLedB, bluVal); 
+  } else{};
+}
+
+
+
+void HSV_to_RGB(float h, float s, float v, byte *r, byte *g, byte *b)
+{
+  int i,f,p,q,t;
+  
+  h = max(0.0, min(360.0, h));
+  s = max(0.0, min(100.0, s));
+  v = max(0.0, min(100.0, v));
+  
+  s /= 100;
+  v /= 100;
+  
+  if(s == 0) {
+    // Achromatic (grey)
+    *r = *g = *b = round(v*255);
+    return;
+  }
+
+  h /= 60; // sector 0 to 5
+  i = floor(h);
+  f = h - i; // factorial part of h
+  p = v * (1 - s);
+  q = v * (1 - s * f);
+  t = v * (1 - s * (1 - f));
+  switch(i) {
+    case 0:
+      *r = round(255*v);
+      *g = round(255*t);
+      *b = round(255*p);
+      break;
+    case 1:
+      *r = round(255*q);
+      *g = round(255*v);
+      *b = round(255*p);
+      break;
+    case 2:
+      *r = round(255*p);
+      *g = round(255*v);
+      *b = round(255*t);
+      break;
+    case 3:
+      *r = round(255*p);
+      *g = round(255*q);
+      *b = round(255*v);
+      break;
+    case 4:
+      *r = round(255*t);
+      *g = round(255*p);
+      *b = round(255*v);
+      break;
+    default: // case 5:
+      *r = round(255*v);
+      *g = round(255*p);
+      *b = round(255*q);
+    }
+}
